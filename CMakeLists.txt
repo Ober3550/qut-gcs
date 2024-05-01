@@ -25,9 +25,9 @@ target_include_directories(
 	telem-vis
   	PRIVATE 
 	${CMAKE_SOURCE_DIR}/
-        ${CMAKE_SOURCE_DIR}/implot
-        ${CMAKE_SOURCE_DIR}/imgui-knobs
-        ${CMAKE_SOURCE_DIR}/imspinner
+    ${CMAKE_SOURCE_DIR}/implot
+    ${CMAKE_SOURCE_DIR}/imgui-knobs
+    ${CMAKE_SOURCE_DIR}/imspinner
 )
 
 IF (WIN32)
@@ -40,12 +40,12 @@ ENDIF()
 target_sources(
 	telem-vis
 	PRIVATE
-        ${CMAKE_SOURCE_DIR}/main.cpp
+    ${CMAKE_SOURCE_DIR}/main.cpp
 
-        ${CMAKE_SOURCE_DIR}/implot/implot.cpp
-        ${CMAKE_SOURCE_DIR}/implot/implot_items.cpp
-        ${CMAKE_SOURCE_DIR}/implot/implot_demo.cpp
+    ${CMAKE_SOURCE_DIR}/implot/implot.cpp
+    ${CMAKE_SOURCE_DIR}/implot/implot_items.cpp
+    ${CMAKE_SOURCE_DIR}/implot/implot_demo.cpp
 
-        ${CMAKE_SOURCE_DIR}/imgui-knobs/imgui-knobs.cpp
+    ${CMAKE_SOURCE_DIR}/imgui-knobs/imgui-knobs.cpp
 )
 
