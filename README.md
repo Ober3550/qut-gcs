@@ -13,8 +13,8 @@
 Install dependencies using [vcpkg - (VC++ Package Manager)](https://vcpkg.io/en/index.html) 
 ```bash
 # Clone this repository with recursive option
-> git clone --recursive https://github.com/sukesh-ak/ImGui-GLFW-OpenGL3
-> cd ImGui-GLFW-OpenGL3
+> git clone --recursive https://github.com/sukesh-ak/telem-vis
+> cd telem-vis
 
 # Run the bootstrap script for vcpkg
 > .\vcpkg\bootstrap-vcpkg.bat
@@ -25,7 +25,7 @@ Install dependencies using [vcpkg - (VC++ Package Manager)](https://vcpkg.io/en/
 # Compile and Run (or run  .\win-build.bat)
 > cmake . -B build/
 > cmake --build build
-> build\Debug\ImGui-GLFW-OpenGL3.exe
+> build\Debug\telem-vis.exe
 
 ```
 We are ready to open the project in Visual Studio and Run too!  
@@ -37,8 +37,8 @@ Install dependencies using [vcpkg - (VC++ Package Manager)](https://vcpkg.io/en/
 
 ```bash
 # Clone this repository with recursive option
-$ git clone --recursive https://github.com/sukesh-ak/ImGui-GLFW-OpenGL3
-$ cd ImGui-GLFW-OpenGL3
+$ git clone --recursive https://github.com/sukesh-ak/telem-vis
+$ cd telem-vis
 
 # Run the bootstrap script for vcpkg
 $ ./vcpkg/bootstrap-vcpkg.sh
@@ -56,7 +56,7 @@ $ ./vcpkg/vcpkg install
 # Compile and Run (or run ./linux-build.sh)
 $ cmake . -B build/ 
 $ cmake --build build
-$ ./build/ImGui-GLFW-OpenGL3
+$ ./build/telem-vis
 
 ```
 That's it!

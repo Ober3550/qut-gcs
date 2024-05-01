@@ -5,7 +5,7 @@ SET(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.c
 
 ## project
 project (
-	ImGui-GLFW-OpenGL3
+	telem-vis
 	DESCRIPTION "ImGui Sample with GLFW + OpenGL3"
 	LANGUAGES CXX)
 
@@ -19,10 +19,10 @@ find_package(OpenGL REQUIRED)
 find_package(imgui REQUIRED)
 
 ## Create main executable
-add_executable(ImGui-GLFW-OpenGL3)
+add_executable(telem-vis)
 
 target_include_directories(
-	ImGui-GLFW-OpenGL3
+	telem-vis
   	PRIVATE 
 	${CMAKE_SOURCE_DIR}/
         ${CMAKE_SOURCE_DIR}/implot
@@ -31,14 +31,14 @@ target_include_directories(
 )
 
 IF (WIN32)
-    target_link_libraries(ImGui-GLFW-OpenGL3 PRIVATE glfw opengl32.lib imgui::imgui)
+    target_link_libraries(telem-vis PRIVATE glfw opengl32.lib imgui::imgui)
 ELSE()
-	target_link_libraries(ImGui-GLFW-OpenGL3 PRIVATE glfw OpenGL imgui::imgui)
+	target_link_libraries(telem-vis PRIVATE glfw OpenGL imgui::imgui)
 ENDIF()
 
 
 target_sources(
-	ImGui-GLFW-OpenGL3
+	telem-vis
 	PRIVATE
         ${CMAKE_SOURCE_DIR}/main.cpp
 

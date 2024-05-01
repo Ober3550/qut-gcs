@@ -1,5 +1,5 @@
 {
-  "name": "imgui-glfw-opengl3",
+  "name": "telem-vis",
   "version-string": "0.1.0",
   "dependencies": [
     {
