@@ -1,51 +1,37 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-## vcpkg
-SET(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+include(vcpkg.cmake) # needs to happen before project()
 
-## project
-project (
-	telem-vis
-	DESCRIPTION "ImGui Sample with GLFW + OpenGL3"
-	LANGUAGES CXX)
+project(
+    "qut-gcs" # replace this with the name of your executable
+    VERSION 0.1.0
+    LANGUAGES CXX
+)
 
-## Find dependencies
-find_package(glfw3 REQUIRED)
+# add all headers (.h, .hpp) to this
+set(PRJ_HEADERS )
+# add all source files (.cpp) to this, except the one with main()
+set(PRJ_SOURCES )
+# set the source file containing main()
+set(PRJ_MAIN src/main.cpp)
 
-# Use  cmake -S . -B build/ -DOpenGL_GL_PREFERENCE=GLVND
-# to skip legacy OpenGL library
-set(OpenGL_GL_PREFERENCE GLVND)
+# add library targets here
+set(PRJ_LIBRARIES 
+    fmt::fmt
+    # sdl2
+    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    # imgui
+    imgui::imgui
+    # opengl
+    OpenGL::GL
+)
+
+# add dependency find_package calls and similar here
+find_package(fmt CONFIG REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(imgui REQUIRED)
 
-## Create main executable
-add_executable(telem-vis)
-
-target_include_directories(
-	telem-vis
-  	PRIVATE 
-	${CMAKE_SOURCE_DIR}/
-    ${CMAKE_SOURCE_DIR}/implot
-    ${CMAKE_SOURCE_DIR}/imgui-knobs
-    ${CMAKE_SOURCE_DIR}/imspinner
-)
-
-IF (WIN32)
-    target_link_libraries(telem-vis PRIVATE glfw opengl32.lib imgui::imgui)
-ELSE()
-	target_link_libraries(telem-vis PRIVATE glfw OpenGL imgui::imgui)
-ENDIF()
-
-
-target_sources(
-	telem-vis
-	PRIVATE
-    ${CMAKE_SOURCE_DIR}/main.cpp
-
-    ${CMAKE_SOURCE_DIR}/implot/implot.cpp
-    ${CMAKE_SOURCE_DIR}/implot/implot_items.cpp
-    ${CMAKE_SOURCE_DIR}/implot/implot_demo.cpp
-
-    ${CMAKE_SOURCE_DIR}/imgui-knobs/imgui-knobs.cpp
-)
-
+add_executable(${PROJECT_NAME} ${PRJ_HEADERS} ${PRJ_SOURCES} ${PRJ_MAIN})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PRJ_LIBRARIES})

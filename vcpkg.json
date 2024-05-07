@@ -1,27 +1,16 @@
 {
-  "name": "telem-vis",
+  "name": "my-test",
   "version-string": "0.1.0",
   "dependencies": [
-    {
-      "name": "imgui",
-      "platform": "windows",
-      "default-features": false,
-      "features": [
-        "win32-binding",
-        "docking-experimental",
-        "glfw-binding",
-        "opengl3-binding"
-      ]
-    },
-    {
-      "name": "imgui",
-      "platform": "linux",
-      "default-features": false,
-      "features": [
-        "docking-experimental",
-        "glfw-binding",
-        "opengl3-binding"
-      ]
-    }
+      "fmt",
+      "sdl2",
+      { 
+        "name": "imgui", 
+        "features": [
+          "opengl3-binding", 
+          "sdl2-binding"
+        ] 
+      },
+      "opengl"
   ]
 }
