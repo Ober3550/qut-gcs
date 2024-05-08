@@ -1,16 +1,16 @@
 {
-  "name": "my-test",
+  "name": "qut-gcs",
   "version-string": "0.1.0",
   "dependencies": [
-      "fmt",
-      "sdl2",
-      { 
-        "name": "imgui", 
-        "features": [
-          "opengl3-binding", 
-          "sdl2-binding"
-        ] 
-      },
-      "opengl"
+    "fmt",
+    "sdl2",
+    {
+      "name": "imgui",
+      "features": ["opengl3-binding", "sdl2-binding"]
+    },
+    "opengl",
+    "glm",
+    "glad",
+    "gl3w"
   ]
 }
