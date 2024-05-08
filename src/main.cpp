@@ -8,7 +8,8 @@
 #else
 #include <SDL2/SDL_opengl.h>
 #endif
-#include "shader-manager/shader-m.h"
+#include "shader-manager/mesh.h"
+#include "shader-manager/shader.h"
 #include <fmt/core.h>
 #include <iostream>
 
@@ -89,21 +90,12 @@ int main() {
 
   // Load shader programs
   Shader shader("shaders/vs.glsl", "shaders/fs.glsl");
-
-  // Setup vertex array object for loading vertex data to GPU
-  GLuint VertexArrayID;
-  glGenVertexArrays(1, &VertexArrayID);
-  glBindVertexArray(VertexArrayID);
-  // An array of 3 vectors which represents 3 vertices
-  static const GLfloat g_vertex_buffer_data[] = {
-      -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-  };
-
-  GLuint vertexbuffer;
-  glGenBuffers(1, &vertexbuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data),
-               g_vertex_buffer_data, GL_STATIC_DRAW);
+  Mesh mesh(std::vector<glm::vec3>({
+                glm::vec3(-1.0f, -1.0f, 0.0f),
+                glm::vec3(1.0f, -1.0f, 0.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f),
+            }),
+            std::vector<uint32_t>({0, 1, 2}));
 
   // Setup Platform/Renderer backends
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
@@ -143,14 +135,9 @@ int main() {
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Load the vertex buffer
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
     // Draw the triangle loaded into the buffer
     shader.use();
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDisableVertexAttribArray(0);
+    mesh.draw();
 
     // // Draw ImGui Widgets
     ImGui::NewFrame();

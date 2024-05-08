@@ -17,6 +17,7 @@ set(PRJ_SOURCES )
 # set the source file containing main()
 set(PRJ_MAIN 
     src/main.cpp
+    src/shader-manager/mesh.cpp
 )
 
 # add library targets here
