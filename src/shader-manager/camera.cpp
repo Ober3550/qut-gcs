@@ -20,11 +20,24 @@ void Camera::move(std::set<int> keysPressed) {
   if (keysPressed.find(SDLK_d) != keysPressed.end()) {
     position += speed * right;
   }
+  if (keysPressed.find(SDLK_SPACE) != keysPressed.end()) {
+    position += speed * WorldUp;
+  }
+  if (keysPressed.find(SDLK_LSHIFT) != keysPressed.end()) {
+    position -= speed * WorldUp;
+  }
   if (keysPressed.find(SDLK_UP) != keysPressed.end()) {
     pitch += 1.0f;
   }
   if (keysPressed.find(SDLK_DOWN) != keysPressed.end()) {
     pitch -= 1.0f;
+  }
+  // Constrain the up/down look directions
+  if (pitch > 89.0f) {
+    pitch = 89.0f;
+  }
+  if (pitch < -89.0f) {
+    pitch = -89.0f;
   }
   if (keysPressed.find(SDLK_LEFT) != keysPressed.end()) {
     yaw -= 1.0f;
