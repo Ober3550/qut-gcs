@@ -88,7 +88,7 @@ int main() {
   }
 
   // Load shader programs
-  GLuint programID = LoadShaders("shaders/vs.glsl", "shaders/fs.glsl");
+  Shader shader("shaders/vs.glsl", "shaders/fs.glsl");
 
   // Setup vertex array object for loading vertex data to GPU
   GLuint VertexArrayID;
@@ -148,7 +148,7 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
     // Draw the triangle loaded into the buffer
-    glUseProgram(programID);
+    shader.use();
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDisableVertexAttribArray(0);
 
