@@ -1,3 +1,8 @@
+// std::cpp
+#include <iostream>
+#include <set>
+
+// Graphics
 #include <GL/gl3w.h>
 #include <SDL2/SDL.h>
 #include <imgui.h>
@@ -9,8 +14,11 @@
 #include <SDL2/SDL_opengl.h>
 #endif
 #include <fmt/core.h>
-#include <iostream>
 
+// Events
+#include "SDL.h"
+
+// Graphics Management
 #include "shader-manager/camera.h"
 #include "shader-manager/mesh.h"
 #include "shader-manager/shader.h"
@@ -111,26 +119,9 @@ int main() {
   // Main loop
   bool done = false;
 
+  std::set<int> keysPressed;
+
   while (!done) {
-    // Poll and handle events (inputs, window resize, etc.)
-    // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
-    // tell if dear imgui wants to use your inputs.
-    // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
-    // your main application, or clear/overwrite your copy of the mouse data.
-    // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
-    // data to your main application, or clear/overwrite your copy of the
-    // keyboard data. Generally you may always pass all inputs to dear imgui,
-    // and hide them from your application based on those two flags.
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
-      if (event.type == SDL_QUIT)
-        done = true;
-      if (event.type == SDL_WINDOWEVENT &&
-          event.window.event == SDL_WINDOWEVENT_CLOSE &&
-          event.window.windowID == SDL_GetWindowID(window))
-        done = true;
-    }
     int width, height;
     SDL_GetWindowSize(window, &width, &height);
 
@@ -140,8 +131,35 @@ int main() {
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Handle event loop
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      ImGui_ImplSDL2_ProcessEvent(&event);
+      if (event.type == SDL_QUIT) {
+        done = true;
+        break;
+      }
+      if (event.type == SDL_WINDOWEVENT &&
+          event.window.event == SDL_WINDOWEVENT_CLOSE &&
+          event.window.windowID == SDL_GetWindowID(window)) {
+        done = true;
+        break;
+      }
+      switch (event.type) {
+      case SDL_KEYDOWN: {
+        keysPressed.insert(event.key.keysym.sym);
+        break;
+      }
+      case SDL_KEYUP: {
+        keysPressed.erase(event.key.keysym.sym);
+        break;
+      }
+      }
+    }
+
     // Draw the triangle loaded into the buffer
     shader.use();
+    camera.move(keysPressed);
     shader.setMat4("projection", camera.GetProjectionMatrix(width, height));
     shader.setMat4("view", camera.GetViewMatrix());
     mesh.draw();
@@ -152,6 +170,13 @@ int main() {
     ImGui::Text("This is some useful text.");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / io.Framerate, io.Framerate);
+    ImGui::End();
+
+    ImGui::Begin("Keybord state");
+    ImGui::Text("Keys pressed:");
+    for (const int key : keysPressed) {
+      ImGui::Text("%s", SDL_GetKeyName(key));
+    }
     ImGui::End();
 
     // Rendering
