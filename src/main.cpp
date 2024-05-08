@@ -1,6 +1,4 @@
 #include <GL/gl3w.h>
-
-// ImGui + SDL2
 #include <SDL2/SDL.h>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
@@ -10,16 +8,10 @@
 #else
 #include <SDL2/SDL_opengl.h>
 #endif
-// fmt
 #include "shader-manager/shader-m.h"
 #include <fmt/core.h>
 #include <iostream>
 
-// adapted from
-// https://github.com/ocornut/imgui/tree/bb224c8aa1de1992c6ea3483df56fb04d6d1b5b6/examples/example_sdl2_opengl3
-// to remove apple / macos support,
-// and to remove useless code irrelevant to this tutorial.
-// reformatted, too.
 int main() {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
     fmt::print("SDL_Init failed: {}\n", SDL_GetError());
@@ -83,8 +75,9 @@ int main() {
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
-  // ImGui::StyleColorsLight();
 
+  // Opengl template based on this tutorial:
+  // https://www.opengl-tutorial.org/beginners-tutorials/tutorial-2-the-first-triangle/
   if (gl3wInit()) {
     fprintf(stderr, "Failed to initialize OpenGL\n");
     return 1;
@@ -94,9 +87,10 @@ int main() {
     return 1;
   }
 
-  // Opengl stuff -------------------------------
+  // Load shader programs
   GLuint programID = LoadShaders("shaders/vs.glsl", "shaders/fs.glsl");
 
+  // Setup vertex array object for loading vertex data to GPU
   GLuint VertexArrayID;
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
@@ -104,13 +98,10 @@ int main() {
   static const GLfloat g_vertex_buffer_data[] = {
       -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
   };
-  // This will identify our vertex buffer
+
   GLuint vertexbuffer;
-  // Generate 1 buffer, put the resulting identifier in vertexbuffer
   glGenBuffers(1, &vertexbuffer);
-  // The following commands will talk about our 'vertexbuffer' buffer
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-  // Give our vertices to OpenGL.
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data),
                g_vertex_buffer_data, GL_STATIC_DRAW);
 
@@ -118,9 +109,9 @@ int main() {
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
   ImGui_ImplOpenGL3_Init(glsl_version);
 
-  ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.00f);
-  glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
-               clear_color.z * clear_color.w, clear_color.w);
+  // Clear the screen with this color
+  ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);
+  glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 
   // Main loop
   bool done = false;
@@ -149,15 +140,14 @@ int main() {
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame();
-    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w,
-                 clear_color.z * clear_color.w, clear_color.w);
+    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // 1st attribute buffer : vertices
+    // Load the vertex buffer
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-    // Draw the triangle !
+    // Draw the triangle loaded into the buffer
     glUseProgram(programID);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glDisableVertexAttribArray(0);
