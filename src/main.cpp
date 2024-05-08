@@ -8,10 +8,12 @@
 #else
 #include <SDL2/SDL_opengl.h>
 #endif
-#include "shader-manager/mesh.h"
-#include "shader-manager/shader.h"
 #include <fmt/core.h>
 #include <iostream>
+
+#include "shader-manager/camera.h"
+#include "shader-manager/mesh.h"
+#include "shader-manager/shader.h"
 
 int main() {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
@@ -96,6 +98,7 @@ int main() {
                 glm::vec3(0.0f, 1.0f, 0.0f),
             }),
             std::vector<uint32_t>({0, 1, 2}));
+  Camera camera(glm::vec3(0.0f, 0.0f, 2.0f));
 
   // Setup Platform/Renderer backends
   ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
@@ -128,6 +131,8 @@ int main() {
           event.window.windowID == SDL_GetWindowID(window))
         done = true;
     }
+    int width, height;
+    SDL_GetWindowSize(window, &width, &height);
 
     // Start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -137,6 +142,8 @@ int main() {
 
     // Draw the triangle loaded into the buffer
     shader.use();
+    shader.setMat4("projection", camera.GetProjectionMatrix(width, height));
+    shader.setMat4("view", camera.GetViewMatrix());
     mesh.draw();
 
     // // Draw ImGui Widgets

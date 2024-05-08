@@ -18,6 +18,7 @@ set(PRJ_SOURCES )
 set(PRJ_MAIN 
     src/main.cpp
     src/shader-manager/mesh.cpp
+    src/shader-manager/camera.cpp
 )
 
 # add library targets here
