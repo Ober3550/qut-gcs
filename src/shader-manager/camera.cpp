@@ -1,50 +1,52 @@
-#include "camera.h"
-#include "SDL.h"
+#include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <set>
+
+#include "camera.h"
 
 const glm::vec3 Camera::WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 Camera::Camera(glm::vec3 position, float yaw, float pitch, float fov)
     : position(position), yaw(yaw), pitch(pitch), fov(fov) {}
-void Camera::move(std::set<int> keysPressed) {
-  // float speed = 0.05f;
-  // if (keysPressed.find(SDLK_w) != keysPressed.end()) {
-  //   position += speed * forward;
-  // }
-  // if (keysPressed.find(SDLK_s) != keysPressed.end()) {
-  //   position -= speed * forward;
-  // }
-  // if (keysPressed.find(SDLK_a) != keysPressed.end()) {
-  //   position -= speed * right;
-  // }
-  // if (keysPressed.find(SDLK_d) != keysPressed.end()) {
-  //   position += speed * right;
-  // }
-  // if (keysPressed.find(SDLK_SPACE) != keysPressed.end()) {
-  //   position += speed * WorldUp;
-  // }
-  // if (keysPressed.find(SDLK_LSHIFT) != keysPressed.end()) {
-  //   position -= speed * WorldUp;
-  // }
-  // if (keysPressed.find(SDLK_UP) != keysPressed.end()) {
-  //   pitch += 1.0f;
-  // }
-  // if (keysPressed.find(SDLK_DOWN) != keysPressed.end()) {
-  //   pitch -= 1.0f;
-  // }
-  // // Constrain the up/down look directions
-  // if (pitch > 89.0f) {
-  //   pitch = 89.0f;
-  // }
-  // if (pitch < -89.0f) {
-  //   pitch = -89.0f;
-  // }
-  // if (keysPressed.find(SDLK_LEFT) != keysPressed.end()) {
-  //   yaw -= 1.0f;
-  // }
-  // if (keysPressed.find(SDLK_RIGHT) != keysPressed.end()) {
-  //   yaw += 1.0f;
-  // }
+void Camera::move(GLFWwindow *window, double deltaTime) {
+  float speed = (float)(10 * deltaTime);
+  float rotationSpeed = speed * 20;
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    position += speed * forward;
+  }
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    position -= speed * forward;
+  }
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+    position -= speed * right;
+  }
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+    position += speed * right;
+  }
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+    position += speed * WorldUp;
+  }
+  if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+    position -= speed * WorldUp;
+  }
+  if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+    pitch += rotationSpeed;
+  }
+  if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+    pitch -= rotationSpeed;
+  }
+  if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+    yaw -= rotationSpeed;
+  }
+  if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+    yaw += rotationSpeed;
+  }
+  // Constrain the up/down look directions
+  if (pitch > 89.0f) {
+    pitch = 89.0f;
+  }
+  if (pitch < -89.0f) {
+    pitch = -89.0f;
+  }
 }
 glm::mat4 Camera::GetProjectionMatrix(int width, int height) {
   return glm::perspective(glm::radians(fov),

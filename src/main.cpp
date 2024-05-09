@@ -1,6 +1,8 @@
 // std::cpp
+#include <chrono>
 #include <iostream>
 #include <set>
+#include <thread>
 
 // Graphics
 #include <GL/gl3w.h>
@@ -55,7 +57,7 @@ int main() {
 
   // Create window with graphics context
   GLFWwindow *window = glfwCreateWindow(
-      WIN_WIDTH, WIN_HEIGHT, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+      WIN_WIDTH, WIN_HEIGHT, "QUT Aerospace Society - GCS", NULL, NULL);
   if (window == NULL)
     return 1;
   glfwMakeContextCurrent(window);
@@ -114,9 +116,24 @@ int main() {
   Mesh mesh(ICO_VERT, ICO_IDX);
   Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
 
+  // Max framerate
+  const int fpsLimit = (int)1000.0 / 120.0;
+  double lastFrameTime = 0; // number of seconds since the last frame
+
   // Main loop
   std::set<int> keysPressed;
   while (!glfwWindowShouldClose(window)) {
+    // Delta time means that movement is scaled according to framerate
+    double now = glfwGetTime();
+    double deltaTime = now - lastFrameTime;
+    lastFrameTime = now;
+
+    // To limit the framerate to a max of 120 we can sleep the difference
+    int sleepTime = fpsLimit - 2 - (int)deltaTime * 1000;
+    if (sleepTime > 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+    }
+
     // Handle event loop
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
@@ -130,7 +147,7 @@ int main() {
 
     // Draw the triangle loaded into the buffer
     shader.use();
-    camera.move(keysPressed);
+    camera.move(window, deltaTime);
     shader.setMat4("projection", camera.GetProjectionMatrix(width, height));
     shader.setMat4("view", camera.GetViewMatrix());
     mesh.draw();

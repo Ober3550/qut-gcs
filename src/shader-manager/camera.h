@@ -7,7 +7,7 @@ public:
   static const glm::vec3 WorldUp;
   Camera(glm::vec3 position, float yaw = -90.0f, float pitch = 0.0f,
          float fov = 60.0f);
-  void move(std::set<int> keysPressed);
+  void move(GLFWwindow *window, double deltaTime);
   glm::mat4 GetProjectionMatrix(int width, int height);
   glm::mat4 GetViewMatrix();
 
