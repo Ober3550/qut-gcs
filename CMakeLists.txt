@@ -19,6 +19,9 @@ set(PRJ_MAIN
     src/main.cpp
     src/shader-manager/mesh.cpp
     src/shader-manager/camera.cpp
+    src/implot/implot_demo.cpp
+    src/implot/implot_items.cpp
+    src/implot/implot.cpp
 )
 
 # add library targets here
