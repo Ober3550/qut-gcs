@@ -4,19 +4,11 @@
 
 // Graphics
 #include <GL/gl3w.h>
-#include <SDL2/SDL.h>
-#include <imgui.h>
-#include <imgui_impl_opengl3.h>
-#include <imgui_impl_sdl2.h>
-#if defined(IMGUI_IMPL_OPENGL_ES2)
-#include <SDL2/SDL_opengles2.h>
-#else
-#include <SDL2/SDL_opengl.h>
-#endif
+#include <GLFW/glfw3.h>
 #include <fmt/core.h>
-
-// Events
-#include "SDL.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 // Graphics Management
 #include "shader-manager/camera.h"
@@ -25,146 +17,49 @@
 
 #include "implot/implot.h"
 
-// utility structure for realtime plot
-struct ScrollingBuffer {
-  int MaxSize;
-  int Offset;
-  ImVector<ImVec2> Data;
-  ScrollingBuffer(int max_size = 2000) {
-    MaxSize = max_size;
-    Offset = 0;
-    Data.reserve(MaxSize);
-  }
-  void AddPoint(float x, float y) {
-    if (Data.size() < MaxSize)
-      Data.push_back(ImVec2(x, y));
-    else {
-      Data[Offset] = ImVec2(x, y);
-      Offset = (Offset + 1) % MaxSize;
-    }
-  }
-  void Erase() {
-    if (Data.size() > 0) {
-      Data.shrink(0);
-      Offset = 0;
-    }
-  }
-};
-
-// utility structure for realtime plot
-struct RollingBuffer {
-  float Span;
-  ImVector<ImVec2> Data;
-  RollingBuffer() {
-    Span = 10.0f;
-    Data.reserve(2000);
-  }
-  void AddPoint(float x, float y) {
-    float xmod = fmodf(x, Span);
-    if (!Data.empty() && xmod < Data.back().x)
-      Data.shrink(0);
-    Data.push_back(ImVec2(xmod, y));
-  }
-};
-
-void Demo_RealtimePlots() {
-  ImGui::BulletText("Move your mouse to change the data!");
-  ImGui::BulletText(
-      "This example assumes 60 FPS. Higher FPS requires larger buffer size.");
-  static ScrollingBuffer sdata1, sdata2;
-  static RollingBuffer rdata1, rdata2;
-  ImVec2 mouse = ImGui::GetMousePos();
-  static float t = 0;
-  t += ImGui::GetIO().DeltaTime;
-  sdata1.AddPoint(t, mouse.x * 0.0005f);
-  rdata1.AddPoint(t, mouse.x * 0.0005f);
-  sdata2.AddPoint(t, mouse.y * 0.0005f);
-  rdata2.AddPoint(t, mouse.y * 0.0005f);
-
-  static float history = 10.0f;
-  ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
-  rdata1.Span = history;
-  rdata2.Span = history;
-
-  static ImPlotAxisFlags flags =
-      ImPlotAxisFlags_NoTickLabels | ImPlotAxisFlags_NoTickMarks;
-
-  if (ImPlot::BeginPlot("Scrolling", ImVec2(-1, 250))) {
-    ImPlot::SetupAxes("Scrolling Title a", "Scrolling Title b", flags, flags);
-    ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
-    ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-    ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-    ImPlot::PlotShaded("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y,
-                       sdata1.Data.size(), -INFINITY, 0, sdata1.Offset,
-                       2 * sizeof(float));
-    ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y,
-                     sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
-    ImPlot::EndPlot();
-  }
-  if (ImPlot::BeginPlot("Rolling", ImVec2(-1, 250))) {
-    ImPlot::SetupAxes(NULL, NULL, flags, flags);
-    ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
-    ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-    ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y,
-                     rdata1.Data.size(), 0, 0, 2 * sizeof(float));
-    ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y,
-                     rdata2.Data.size(), 0, 0, 2 * sizeof(float));
-    ImPlot::EndPlot();
-  }
+static void glfw_error_callback(int error, const char *description) {
+  fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
 int main() {
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0) {
-    fmt::print("SDL_Init failed: {}\n", SDL_GetError());
-    return -1;
-  }
+  // Setup window
+  glfwSetErrorCallback(glfw_error_callback);
+  if (!glfwInit())
+    return 1;
 
-  // Decide GL+GLSL versions
+    // Decide GL+GLSL versions
 #if defined(IMGUI_IMPL_OPENGL_ES2)
   // GL ES 2.0 + GLSL 100
   const char *glsl_version = "#version 100";
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 #elif defined(__APPLE__)
   // GL 3.2 + GLSL 150
   const char *glsl_version = "#version 150";
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
-                      SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required on Mac
 #else
   // GL 3.0 + GLSL 130
   const char *glsl_version = "#version 130";
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-#endif
-
-  // From 2.0.18: Enable native IME.
-#ifdef SDL_HINT_IME_SHOW_UI
-  SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+
+  // only glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // 3.0+ only
 #endif
 
   const int WIN_WIDTH = 1280;
   const int WIN_HEIGHT = 720;
 
   // Create window with graphics context
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-  SDL_WindowFlags window_flags =
-      (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
-                        SDL_WINDOW_ALLOW_HIGHDPI);
-  SDL_Window *window = SDL_CreateWindow(
-      "QUT Aerospace Society - GCS", SDL_WINDOWPOS_CENTERED,
-      SDL_WINDOWPOS_CENTERED, WIN_WIDTH, WIN_HEIGHT, window_flags);
-  SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-  SDL_GL_MakeCurrent(window, gl_context);
-  SDL_GL_SetSwapInterval(1); // Enable vsync
+  GLFWwindow *window = glfwCreateWindow(
+      WIN_WIDTH, WIN_HEIGHT, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+  if (window == NULL)
+    return 1;
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(1); // Enable vsync
 
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -174,9 +69,28 @@ int main() {
   (void)io;
   io.ConfigFlags |=
       ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad
+  // Controls
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
+  io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport /
+                                                      // Platform Windows
+  // io.ConfigViewportsNoAutoMerge = true;
+  // io.ConfigViewportsNoTaskBarIcon = true;
 
   // Setup Dear ImGui style
   ImGui::StyleColorsDark();
+
+  // When viewports are enabled we tweak WindowRounding/WindowBg so platform
+  // windows can look identical to regular ones.
+  ImGuiStyle &style = ImGui::GetStyle();
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    style.WindowRounding = 0.0f;
+    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+  }
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init(glsl_version);
 
   // Opengl template based on this tutorial:
   // https://www.opengl-tutorial.org/beginners-tutorials/tutorial-2-the-first-triangle/
@@ -189,60 +103,30 @@ int main() {
     return 1;
   }
 
+  // Clear the screen with this color
+  ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);
+
+  // Set to wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
   // Load shader programs
   Shader shader("shaders/vs.glsl", "shaders/fs.glsl");
   Mesh mesh(ICO_VERT, ICO_IDX);
-  Camera camera(glm::vec3(0.0f, 0.0f, 2.0f));
-
-  // Setup Platform/Renderer backends
-  ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-  ImGui_ImplOpenGL3_Init(glsl_version);
-
-  // Clear the screen with this color
-  ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);
-  glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
 
   // Main loop
-  bool done = false;
-
   std::set<int> keysPressed;
-
-  while (!done) {
+  while (!glfwWindowShouldClose(window)) {
+    // Handle event loop
     int width, height;
-    SDL_GetWindowSize(window, &width, &height);
-
-    // Start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
+    glfwGetFramebufferSize(window, &width, &height);
+    glfwPollEvents();
     glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Handle event loop
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
-      if (event.type == SDL_QUIT) {
-        done = true;
-        break;
-      }
-      if (event.type == SDL_WINDOWEVENT &&
-          event.window.event == SDL_WINDOWEVENT_CLOSE &&
-          event.window.windowID == SDL_GetWindowID(window)) {
-        done = true;
-        break;
-      }
-      switch (event.type) {
-      case SDL_KEYDOWN: {
-        keysPressed.insert(event.key.keysym.sym);
-        break;
-      }
-      case SDL_KEYUP: {
-        keysPressed.erase(event.key.keysym.sym);
-        break;
-      }
-      }
-    }
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
 
     // Draw the triangle loaded into the buffer
     shader.use();
@@ -259,29 +143,33 @@ int main() {
                 1000.0f / io.Framerate, io.Framerate);
     ImGui::End();
 
-    ImGui::Begin("Keybord state");
-    ImGui::Text("Keys pressed:");
-    for (const int key : keysPressed) {
-      ImGui::Text("%s", SDL_GetKeyName(key));
-    }
-    ImGui::End();
-
-    Demo_RealtimePlots();
-
     // Rendering
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    SDL_GL_SwapWindow(window);
+
+    // Update and Render additional Platform Windows
+    // (Platform functions may change the current OpenGL context, so we
+    // save/restore it to make it easier to paste this code elsewhere.
+    //  For this specific demo app we could also call
+    //  glfwMakeContextCurrent(window) directly)
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+      GLFWwindow *backup_current_context = glfwGetCurrentContext();
+      ImGui::UpdatePlatformWindows();
+      ImGui::RenderPlatformWindowsDefault();
+      glfwMakeContextCurrent(backup_current_context);
+    }
+
+    glfwSwapBuffers(window);
   }
 
   // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImPlot::DestroyContext();
   ImGui::DestroyContext();
 
-  SDL_GL_DeleteContext(gl_context);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
+  glfwDestroyWindow(window);
+  glfwTerminate();
 
   return 0;
 }

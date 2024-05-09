@@ -43,6 +43,7 @@ find_package(OpenGL REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(gl3w CONFIG REQUIRED)
 
+set(CMAKE_CXX_STANDARD 17)
 add_executable(${PROJECT_NAME} ${PRJ_HEADERS} ${PRJ_SOURCES} ${PRJ_MAIN})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PRJ_LIBRARIES})
 add_custom_command(
