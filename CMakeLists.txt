@@ -12,11 +12,9 @@ project(
 set(PRJ_HEADERS 
     src
 )
+
 # add all source files (.cpp) to this, except the one with main()
-set(PRJ_SOURCES )
-# set the source file containing main()
-set(PRJ_MAIN 
-    src/main.cpp
+set(PRJ_SOURCES 
     src/shader-manager/mesh.cpp
     src/shader-manager/camera.cpp
     src/implot/implot_demo.cpp
@@ -24,11 +22,14 @@ set(PRJ_MAIN
     src/implot/implot.cpp
 )
 
+# set the source file containing main()
+set(PRJ_MAIN 
+    src/main.cpp
+)
+
 # add library targets here
 set(PRJ_LIBRARIES 
     fmt::fmt
-    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
     imgui::imgui
     OpenGL::GL
     glm::glm
@@ -37,8 +38,7 @@ set(PRJ_LIBRARIES
 
 # add dependency find_package calls and similar here
 find_package(fmt CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
-find_package(imgui CONFIG REQUIRED)
+find_package(imgui REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(gl3w CONFIG REQUIRED)
@@ -46,6 +46,8 @@ find_package(gl3w CONFIG REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 add_executable(${PROJECT_NAME} ${PRJ_HEADERS} ${PRJ_SOURCES} ${PRJ_MAIN})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PRJ_LIBRARIES})
+
+# Copy shaders to build directory
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory              
