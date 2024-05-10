@@ -25,7 +25,7 @@ public:
     vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try {
-      std::string cwd = std::string(std::filesystem::current_path()) + "/";
+      std::string cwd = std::filesystem::current_path().generic_string() + "/";
       std::cout << "Loading shaders" << std::endl;
       std::cout << "Vertex path: " << cwd + vertexPath << std::endl;
       std::cout << "Fragment path: " << cwd + fragmentPath << std::endl;

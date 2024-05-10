@@ -77,9 +77,6 @@ App::App() {
   if (gl3wInit()) {
     throw std::runtime_error("Failed to initialize OpenGL\n");
   }
-  if (!gl3wIsSupported(3, 2)) {
-    throw std::runtime_error("OpenGL 3.2 not supported\n");
-  }
 }
 
 void App::BeginFrame() {

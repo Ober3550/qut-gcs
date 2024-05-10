@@ -29,15 +29,6 @@ set(PRJ_MAIN
     src/main.cpp
 )
 
-# add library targets here
-set(PRJ_LIBRARIES 
-    fmt::fmt
-    imgui::imgui
-    OpenGL::GL
-    glm::glm
-    unofficial::gl3w::gl3w
-)
-
 # add dependency find_package calls and similar here
 find_package(fmt CONFIG REQUIRED)
 find_package(imgui REQUIRED)
@@ -48,6 +39,24 @@ find_package(gl3w CONFIG REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 add_executable(${PROJECT_NAME} ${PRJ_HEADERS} ${PRJ_SOURCES} ${PRJ_MAIN})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PRJ_LIBRARIES})
+
+IF (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE 
+        fmt::fmt
+        imgui::imgui
+        glm::glm
+        unofficial::gl3w::gl3w
+        opengl32.lib 
+    )
+ELSE()
+	target_link_libraries(${PROJECT_NAME} PRIVATE 
+        fmt::fmt
+        imgui::imgui
+        glm::glm
+        unofficial::gl3w::gl3w
+        OpenGL::GL
+    )
+ENDIF()
 
 # Copy shaders to build directory
 add_custom_command(
