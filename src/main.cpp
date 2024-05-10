@@ -108,12 +108,15 @@ int main() {
   // Clear the screen with this color
   ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 1.0f);
 
-  // Set to wireframe mode
+  // Fill mode
+  // glPolygonMode(GL_FRONT, GL_FILL);
+  // Wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Load shader programs
   Shader shader("shaders/vs.glsl", "shaders/fs.glsl");
-  Mesh mesh(ICO_VERT, ICO_IDX);
+  Mesh icoMesh(ICO_VERT, ICO_IDX);
+  Mesh cubeMesh(CUBE_VERT, CUBE_IDX);
   Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
 
   // Max framerate
@@ -151,7 +154,8 @@ int main() {
     camera.move(window, deltaTime);
     shader.setMat4("projection", camera.GetProjectionMatrix(width, height));
     shader.setMat4("view", camera.GetViewMatrix());
-    mesh.draw();
+    // icoMesh.draw();
+    cubeMesh.draw();
 
     // // Draw ImGui Widgets
     ImGui::NewFrame();
