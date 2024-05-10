@@ -15,8 +15,9 @@ set(PRJ_HEADERS
 
 # add all source files (.cpp) to this, except the one with main()
 set(PRJ_SOURCES 
-    src/shader-manager/mesh.cpp
-    src/shader-manager/camera.cpp
+    src/rendering/mesh.cpp
+    src/rendering/camera.cpp
+    src/rendering/object.cpp
     src/implot/implot_demo.cpp
     src/implot/implot_items.cpp
     src/implot/implot.cpp

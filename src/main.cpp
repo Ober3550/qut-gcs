@@ -13,9 +13,8 @@
 #include <imgui_impl_opengl3.h>
 
 // Graphics Management
-#include "shader-manager/camera.h"
-#include "shader-manager/mesh.h"
-#include "shader-manager/shader.h"
+#include "rendering/camera.h"
+#include "rendering/object.h"
 
 #include "implot/implot.h"
 
@@ -117,6 +116,7 @@ int main() {
   Shader shader("shaders/vs.glsl", "shaders/fs.glsl");
   Mesh icoMesh(ICO_VERT, ICO_IDX);
   Mesh cubeMesh(CUBE_VERT, CUBE_IDX);
+  Object cubeObject(&cubeMesh);
   Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
 
   // Max framerate
@@ -134,7 +134,7 @@ int main() {
     // To limit the framerate to a max of 120 we can sleep the difference
     int sleepTime = fpsLimit - 2 - (int)deltaTime * 1000;
     if (sleepTime > 0) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+      // std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
     }
 
     // Handle event loop
@@ -154,8 +154,8 @@ int main() {
     camera.move(window, deltaTime);
     shader.setMat4("projection", camera.GetProjectionMatrix(width, height));
     shader.setMat4("view", camera.GetViewMatrix());
-    // icoMesh.draw();
-    cubeMesh.draw();
+    cubeObject.addRotation(glm::vec3(0.0f, 0.5f, 0.5f));
+    cubeObject.draw(shader);
 
     // // Draw ImGui Widgets
     ImGui::NewFrame();
