@@ -12,6 +12,7 @@ void Object::draw(Shader &shader) {
   transform = glm::translate(transform, position);
   transform = transform * glm::mat4_cast(glm::quat(glm::radians(rotation)));
   transform = glm::scale(transform, scale);
+  shader.use();
   shader.setMat4("model", transform);
   shader.setVec3("color", color);
   mesh->draw();

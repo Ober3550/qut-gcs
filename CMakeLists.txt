@@ -15,6 +15,7 @@ set(PRJ_HEADERS
 
 # add all source files (.cpp) to this, except the one with main()
 set(PRJ_SOURCES 
+    src/rendering/app.cpp
     src/rendering/mesh.cpp
     src/rendering/camera.cpp
     src/rendering/object.cpp
