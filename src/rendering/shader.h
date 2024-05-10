@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "camera.h"
+
 class Shader {
 public:
   unsigned int ID;
@@ -68,6 +70,10 @@ public:
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     std::cout << "Loaded shaders" << std::endl;
+  }
+  void move(Camera *camera) {
+    setMat4("projection", camera->GetProjectionMatrix());
+    setMat4("view", camera->GetViewMatrix());
   }
   // activate the shader
   // ------------------------------------------------------------------------

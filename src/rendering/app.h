@@ -1,7 +1,10 @@
 #pragma once
 
 // std::cpp
+#include <chrono>
+#include <iostream>
 #include <stdexcept>
+#include <thread>
 
 // Graphics
 #include <GL/gl3w.h>

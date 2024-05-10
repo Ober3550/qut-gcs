@@ -91,6 +91,7 @@ void App::BeginFrame() {
   // To limit the framerate to a max of 120 we can sleep the difference
   int sleepTime = fpsLimit - 2 - (int)deltaTime * 1000;
   if (sleepTime > 0) {
+    // WSL doesn't have a vsync signal
     // std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
   }
   // Handle event loop

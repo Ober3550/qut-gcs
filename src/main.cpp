@@ -1,9 +1,3 @@
-// std::cpp
-#include <chrono>
-#include <iostream>
-#include <set>
-#include <thread>
-
 #include "rendering/app.h"
 
 int main() {
@@ -19,21 +13,20 @@ int main() {
   Shader shader("shaders/vs.glsl", "shaders/fs.glsl");
   Mesh icoMesh(ICO_VERT, ICO_IDX);
   Mesh cubeMesh(CUBE_VERT, CUBE_IDX);
-  Object cubeObject(&cubeMesh);
-  Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
+  Object object(&icoMesh, &shader);
+  Camera camera(app.window, glm::vec3(0.0f, 0.0f, 5.0f));
 
   // Main loop
-  std::set<int> keysPressed;
   while (!glfwWindowShouldClose(app.window)) {
     app.BeginFrame();
 
-    // Draw the triangle loaded into the buffer
-    camera.move(app.window, app.deltaTime);
-    shader.setMat4("projection",
-                   camera.GetProjectionMatrix(app.width, app.height));
-    shader.setMat4("view", camera.GetViewMatrix());
-    cubeObject.addRotation(glm::vec3(0.0f, 0.5f, 0.5f));
-    cubeObject.draw(shader);
+    // Apply world transforms from camera
+    camera.move(app.deltaTime);
+    shader.move(&camera);
+
+    // Move the object according to our data
+    object.addRotation(glm::vec3(0.0f, 0.5f, 0.5f));
+    object.draw();
 
     // // Draw ImGui Widgets
     ImGui::NewFrame();

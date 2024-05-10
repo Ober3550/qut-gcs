@@ -1,13 +1,12 @@
-#include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <set>
 
 #include "camera.h"
 
 const glm::vec3 Camera::WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-Camera::Camera(glm::vec3 position, float yaw, float pitch, float fov)
-    : position(position), yaw(yaw), pitch(pitch), fov(fov) {}
-void Camera::move(GLFWwindow *window, double deltaTime) {
+Camera::Camera(GLFWwindow *window, glm::vec3 position, float yaw, float pitch,
+               float fov)
+    : window(window), position(position), yaw(yaw), pitch(pitch), fov(fov) {}
+void Camera::move(double deltaTime) {
   float speed = (float)(10 * deltaTime);
   float rotationSpeed = speed * 20;
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -48,7 +47,9 @@ void Camera::move(GLFWwindow *window, double deltaTime) {
     pitch = -89.0f;
   }
 }
-glm::mat4 Camera::GetProjectionMatrix(int width, int height) {
+glm::mat4 Camera::GetProjectionMatrix() {
+  int width, height;
+  glfwGetFramebufferSize(window, &width, &height);
   return glm::perspective(glm::radians(fov),
                           (float)(((float)width) / ((float)height)), 0.1f,
                           100.0f);
