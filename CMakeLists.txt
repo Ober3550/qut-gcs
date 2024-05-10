@@ -22,6 +22,7 @@ set(PRJ_SOURCES
     src/implot/implot_demo.cpp
     src/implot/implot_items.cpp
     src/implot/implot.cpp
+    src/serial/serial.cpp
 )
 
 # set the source file containing main()
@@ -35,6 +36,7 @@ find_package(imgui REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(gl3w CONFIG REQUIRED)
+find_package(sercomm REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 add_executable(${PROJECT_NAME} ${PRJ_HEADERS} ${PRJ_SOURCES} ${PRJ_MAIN})
@@ -46,7 +48,8 @@ IF (WIN32)
         imgui::imgui
         glm::glm
         unofficial::gl3w::gl3w
-        opengl32.lib 
+        sercomm
+        opengl32.lib
     )
 ELSE()
 	target_link_libraries(${PROJECT_NAME} PRIVATE 
@@ -54,6 +57,7 @@ ELSE()
         imgui::imgui
         glm::glm
         unofficial::gl3w::gl3w
+        sercomm
         OpenGL::GL
     )
 ENDIF()
