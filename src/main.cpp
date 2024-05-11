@@ -1,3 +1,4 @@
+#include <cmath>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <fstream>
@@ -5,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#define M_PI 3.14159265358979323846
 
 #include "rendering/app.h"
 #include <sercomm/sercomm.h>
@@ -72,6 +74,12 @@ public:
     rotation.y = std::stof(entries[20]);
     rotation.z = std::stof(entries[23]);
   }
+  glm::vec3 rotationFromGravity() {
+    glm::vec3 gravity = glm::vec3(translation);
+    gravity = glm::normalize(gravity);
+    return glm::vec3(asin(gravity.x) * 180.0f / M_PI, 0.0f,
+                     -asin(gravity.z) * 180.0f / M_PI);
+  }
   std::string print() {
     return fmt::format(
         "t: {} p: {} a: {} trans x: {} y: {} z: {} rotat x: {} y: {} z: {}",
@@ -87,8 +95,29 @@ public:
 private:
 };
 
-int main() {
+int exitThreads = 0;
+std::vector<Telemetry> stream;
+void readTelemetry() {
   HANDLE serial = OpenPort("\\\\.\\COM4");
+  std::string newData;
+  char buffer[1];
+  // Read from the serial port
+  while (ReadFile(serial, buffer, (DWORD)1, NULL, NULL)) {
+    newData.push_back(buffer[0]);
+
+    if (buffer[0] == '\n') {
+      Telemetry entry(newData);
+      std::cout << entry.print() << std::endl;
+      stream.emplace_back(entry);
+      newData = std::string();
+    }
+    if (exitThreads) {
+      return;
+    }
+  }
+}
+
+int main() {
   // If non-zero initialization failed
   App app;
 
@@ -103,12 +132,10 @@ int main() {
   Mesh cubeMesh(CUBE_VERT, CUBE_IDX);
   Object object(&cubeMesh, &shader);
   Camera camera(app.window, glm::vec3(0.0f, 0.0f, 5.0f));
+  std::thread reader(readTelemetry);
 
-  std::vector<Telemetry> stream;
-  Telemetry test(std::string(""));
-  stream.emplace_back(test);
-  std::string newData;
-  char buffer[1];
+  Telemetry base("");
+  stream.emplace_back(base);
 
   // Main loop
   while (!glfwWindowShouldClose(app.window)) {
@@ -118,22 +145,8 @@ int main() {
     camera.move(app.deltaTime);
     shader.move(&camera);
 
-    for (int i = 0; i < 10; i++) {
-      // Read from the serial port
-      ReadFile(serial, buffer, (DWORD)1, NULL, NULL);
-      newData.push_back(buffer[0]);
-
-      if (buffer[0] == '\n') {
-        Telemetry entry(newData);
-        std::cout << entry.print() << std::endl;
-        // Move the object according to our data
-        object.addRotation(entry.rotation, 0.5f);
-        object.addTranslation(entry.translation);
-        stream.emplace_back(entry);
-        newData = std::string();
-      }
-    }
-
+    // Move the object according to our data
+    object.rotate(stream.back().rotationFromGravity());
     object.draw();
 
     // // Draw ImGui Widgets
@@ -141,15 +154,17 @@ int main() {
     ImGui::Begin("Hello, world!");
     ImGui::Text("Serial data");
     ImGui::Text("Entries: %d", stream.size());
-    if (stream.size() > 0) {
-      ImGui::Text("%s", stream.back().print().c_str());
-    }
+    ImGui::Text("%s", stream.back().print().c_str());
+    glm::vec3 rotation = stream.back().rotationFromGravity();
+    ImGui::Text("Rotation: %f %f %f", rotation.x, rotation.y, rotation.z);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / app.io->Framerate, app.io->Framerate);
     ImGui::End();
 
     app.EndFrame();
   }
+  exitThreads = 1;
+  reader.join();
   app.Exit();
   return 0;
 }
