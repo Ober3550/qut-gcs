@@ -10,7 +10,9 @@ public:
          glm::vec3 color = {1.0f, 1.0f, 1.0f});
   void draw();
   void rotate(glm::vec3 rotation);
-  void addRotation(glm::vec3 rotation);
+  void addRotation(glm::vec3 rotation, float scale = 1.0f);
+  void translate(glm::vec3 translation);
+  void addTranslation(glm::vec3 translation, float scale = 1.0f);
 
   const Mesh *mesh;
   const Shader *shader;

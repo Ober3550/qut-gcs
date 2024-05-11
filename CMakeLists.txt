@@ -22,7 +22,6 @@ set(PRJ_SOURCES
     src/implot/implot_demo.cpp
     src/implot/implot_items.cpp
     src/implot/implot.cpp
-    src/serial/serial.cpp
 )
 
 # set the source file containing main()

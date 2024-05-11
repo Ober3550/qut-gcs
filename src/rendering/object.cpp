@@ -5,7 +5,7 @@
 Object::Object(const Mesh *mesh, const Shader *shader, glm::vec3 position,
                glm::vec3 rotation, glm::vec3 scale, glm::vec3 color)
     : shader(shader), mesh(mesh), position(position), rotation(rotation),
-      scale(scale), color(color) {};
+      scale(scale), color(color){};
 
 void Object::draw() {
   glm::mat4 transform = glm::mat4(1.0f);
@@ -18,5 +18,12 @@ void Object::draw() {
   mesh->draw();
 }
 
+void Object::translate(glm::vec3 newTranslation) { position = newTranslation; }
+void Object::addTranslation(glm::vec3 addTranslation, float scale) {
+  position += (addTranslation * glm::vec3(scale));
+}
+
 void Object::rotate(glm::vec3 newRotation) { rotation = newRotation; }
-void Object::addRotation(glm::vec3 addRotation) { rotation += addRotation; }
+void Object::addRotation(glm::vec3 addRotation, float scale) {
+  rotation += (addRotation * glm::vec3(scale));
+}
