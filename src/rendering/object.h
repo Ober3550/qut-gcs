@@ -2,21 +2,24 @@
 
 #include "mesh.h"
 #include "shader.h"
+#include "camera.h"
 
 class Object {
 public:
-  Object(const Mesh *mesh, const Shader *shader, glm::vec3 position = {},
+  Object(const Mesh *mesh, const Shader *shader, glm::vec3 translation = {},
          glm::vec3 rotation = {}, glm::vec3 scale = glm::vec3(1.0f),
          glm::vec3 color = {1.0f, 1.0f, 1.0f});
   void draw();
-  void rotate(glm::vec3 rotation);
+  void update();
   void addRotation(glm::vec3 rotation, float scale = 1.0f);
-  void translate(glm::vec3 translation);
   void addTranslation(glm::vec3 translation, float scale = 1.0f);
+  void applyImpulse(glm::vec4 force);
 
   const Mesh *mesh;
   const Shader *shader;
-  glm::vec3 position, rotation, scale, color;
+  glm::vec3 translation = glm::vec3(0.0f), rotation, scale, color;
+  glm::vec3 velocity = glm::vec3(0.0f);
+  glm::vec3 down = -Camera::WorldUp;
 
 private:
 };

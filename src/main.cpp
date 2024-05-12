@@ -45,9 +45,10 @@ HANDLE OpenPort(const char *port) {
 
 class Telemetry {
 public:
-  Telemetry(std::string data) {
+  Telemetry() {}
+  static Telemetry* read(std::string data) {
     if (data.size() == 0) {
-      return;
+      return NULL;
     }
     std::stringstream stream(data);
     std::string entry("");
@@ -59,32 +60,58 @@ public:
       }
     }
 
-    if (entries[0] != "TEMP:") {
+    if (entries[0] != "temp:") {
       std::cout << "insufficient data" << std::endl;
-      return;
+      return NULL;
     }
 
-    temp = std::stof(entries[1]);
-    pressure = std::stof(entries[3]);
-    altitude = std::stof(entries[5]);
-    translation.x = std::stof(entries[8]);
-    translation.y = -std::stof(entries[14]);
-    translation.z = std::stof(entries[11]);
-    rotation.x = std::stof(entries[17]);
-    rotation.y = std::stof(entries[20]);
-    rotation.z = std::stof(entries[23]);
-  }
-  glm::vec3 rotationFromGravity() {
-    glm::vec3 gravity = glm::vec3(translation);
-    gravity = glm::normalize(gravity);
-    return glm::vec3(asin(gravity.x) * 180.0f / M_PI, 0.0f,
-                     -asin(gravity.z) * 180.0f / M_PI);
+    Telemetry *newEntry = new Telemetry();
+    try {
+      newEntry->temp = std::stof(entries[1]);
+      newEntry->pressure = std::stof(entries[3]);
+      newEntry->altitude = std::stof(entries[5]);
+      newEntry->translation.x = std::stof(entries[8]);
+      newEntry->translation.y = std::stof(entries[10]);
+      newEntry->translation.z = std::stof(entries[12]);
+      newEntry->rotation.x = std::stof(entries[15]);
+      newEntry->rotation.y = std::stof(entries[17]);
+      newEntry->rotation.z = std::stof(entries[19]);
+    }
+    catch (...) {
+      return NULL;
+    }
+
+    return newEntry;
   }
   std::string print() {
     return fmt::format(
-        "t: {} p: {} a: {} trans x: {} y: {} z: {} rotat x: {} y: {} z: {}",
-        temp, pressure, altitude, translation.x, translation.y, translation.z,
-        rotation.x, rotation.y, rotation.z);
+      "temp: {} pres: {} alt: {} trans x: {} y: {} z: {} rotat x: {} y: {} z: {}",
+      temp, pressure, altitude, translation.x, translation.y, translation.z,
+      rotation.x, rotation.y, rotation.z);
+  }
+  glm::vec3 gravityDirection() {
+    glm::vec3 gravity = glm::vec3(translation);
+    if (glm::length(gravity) > 0.0f) {
+      gravity = glm::normalize(gravity);
+    }
+    return gravity;
+  }
+  glm::vec3 rotationFromGravity() {
+    glm::vec3 gravity = gravityDirection();
+    return glm::vec3(asin(gravity.z) * 180.0f / M_PI, 0.0f,
+                     -asin(gravity.x) * 180.0f / M_PI);
+  }
+  glm::vec4 translationMinusGravity(glm::vec3 gravity) {
+    glm::vec3 force = glm::vec3(translation) - (gravity * glm::vec3(GRAVITY));
+    float magnitude = glm::length(force);
+    force = glm::normalize(force);
+
+    // Clamp translations to account for noise
+    if (magnitude < 0.03f) {
+      magnitude = 0.0f;
+      force = glm::vec3(0.0f);
+    }
+    return glm::vec4(force, magnitude * 0.01f);
   }
   float temp = 0.0f;
   float pressure = 0.0f;
@@ -106,9 +133,11 @@ void readTelemetry() {
     newData.push_back(buffer[0]);
 
     if (buffer[0] == '\n') {
-      Telemetry entry(newData);
-      std::cout << entry.print() << std::endl;
-      stream.emplace_back(entry);
+      Telemetry* entry = Telemetry::read(newData);
+      if (entry != NULL) {
+        std::cout << entry->print() << std::endl;
+        stream.emplace_back(*entry);
+      }
       newData = std::string();
     }
     if (exitThreads) {
@@ -134,8 +163,9 @@ int main() {
   Camera camera(app.window, glm::vec3(0.0f, 0.0f, 5.0f));
   std::thread reader(readTelemetry);
 
-  Telemetry base("");
+  Telemetry base;
   stream.emplace_back(base);
+  bool first = true;
 
   // Main loop
   while (!glfwWindowShouldClose(app.window)) {
@@ -145,8 +175,16 @@ int main() {
     camera.move(app.deltaTime);
     shader.move(&camera);
 
-    // Move the object according to our data
-    object.rotate(stream.back().rotationFromGravity());
+    if (first && stream.size() > 1) {
+      first = false;
+      object.down = stream.back().gravityDirection();
+    }
+
+    glm::vec4 impulse = stream.back().translationMinusGravity(object.down);
+    //object.applyImpulse(impulse);
+
+    object.addRotation(stream.back().rotation, 0.005f);
+    object.update();
     object.draw();
 
     // // Draw ImGui Widgets
@@ -155,10 +193,15 @@ int main() {
     ImGui::Text("Serial data");
     ImGui::Text("Entries: %d", stream.size());
     ImGui::Text("%s", stream.back().print().c_str());
-    glm::vec3 rotation = stream.back().rotationFromGravity();
-    ImGui::Text("Rotation: %f %f %f", rotation.x, rotation.y, rotation.z);
+    ImGui::Text("Rotation   : %f %f %f", object.rotation.x, object.rotation.y, object.rotation.z);
+    ImGui::Text("Translation: %f %f %f", object.translation.x, object.translation.y, object.translation.z);
+    ImGui::Text("Impulse    : %f %f %f %f", impulse.x, impulse.y, impulse.z, impulse.w);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / app.io->Framerate, app.io->Framerate);
+    if (ImGui::Button("Recenter")) {
+      object.translation = glm::vec3(0);
+      object.rotation = glm::vec3(0);
+    }
     ImGui::End();
 
     app.EndFrame();

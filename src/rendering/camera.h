@@ -1,6 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#define GRAVITY 0.98f
 
 class Camera {
 public:
