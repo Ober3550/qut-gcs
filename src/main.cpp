@@ -161,11 +161,11 @@ int main() {
   Mesh cubeMesh(CUBE_VERT, CUBE_IDX);
   Object object(&cubeMesh, &shader);
   Camera camera(app.window, glm::vec3(0.0f, 0.0f, 5.0f));
-  std::thread reader(readTelemetry);
-
+  
   Telemetry base;
   stream.emplace_back(base);
-  bool first = true;
+  int last = stream.size();
+  std::thread reader(readTelemetry);
 
   // Main loop
   while (!glfwWindowShouldClose(app.window)) {
@@ -175,15 +175,17 @@ int main() {
     camera.move(app.deltaTime);
     shader.move(&camera);
 
-    if (first && stream.size() > 1) {
-      first = false;
-      object.down = stream.back().gravityDirection();
+    if (stream.size() > last) {
+      last = stream.size();
+      Telemetry& entry = stream.back();
+      if (last == 2) {
+        object.rotation = entry.rotationFromGravity();
+      }
+      else {
+        object.addRotation(entry.rotation, 0.05f);
+      }
     }
 
-    glm::vec4 impulse = stream.back().translationMinusGravity(object.down);
-    //object.applyImpulse(impulse);
-
-    object.addRotation(stream.back().rotation, 0.005f);
     object.update();
     object.draw();
 
@@ -195,12 +197,11 @@ int main() {
     ImGui::Text("%s", stream.back().print().c_str());
     ImGui::Text("Rotation   : %f %f %f", object.rotation.x, object.rotation.y, object.rotation.z);
     ImGui::Text("Translation: %f %f %f", object.translation.x, object.translation.y, object.translation.z);
-    ImGui::Text("Impulse    : %f %f %f %f", impulse.x, impulse.y, impulse.z, impulse.w);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0f / app.io->Framerate, app.io->Framerate);
     if (ImGui::Button("Recenter")) {
       object.translation = glm::vec3(0);
-      object.rotation = glm::vec3(0);
+      object.rotation = stream.back().rotationFromGravity();
     }
     ImGui::End();
 
